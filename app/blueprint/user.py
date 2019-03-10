@@ -6,8 +6,9 @@ from passlib.hash import sha256_crypt
 
 user = Blueprint('user', __name__)
 
+
 @user.route('/api/users', methods=['POST'])
-def createUser():
+def create_user():
 
     data = dict()
     if request.is_json:
@@ -19,7 +20,7 @@ def createUser():
         }), 400
     data['password'] = sha256_crypt.encrypt("123456")
     schema = UserSchema()
-    result  = validate_schema(schema, data)
+    validate_schema(schema, data)
 
     newUser = User.register_new_user(data['name'], data['email'], data['role'], data['password'])
 
