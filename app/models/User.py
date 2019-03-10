@@ -10,19 +10,22 @@ class User(Base):
     name = Column(String(50), nullable=False)
     email = Column(String(20), nullable=False, unique=True)
     role = Column(Integer, nullable=False)
+    password = Column(String(150), nullable=False)
 
-    def __init__(self, name, email, role):
+    def __init__(self, name, email, role, password):
         self.name = name
         self.email = email
         self.role = role
+        self.password = password
 
     @classmethod
     def get_user_by_id(cls, email):
         return session.query(User).filter_by(email=email).first()
 
     @classmethod
-    def register_new_user(cls, name, email, role):
-        user = User(name=name, email=email, role=role)
+    def register_new_user(cls, name, email, role, password):
+        print("password: ", password)
+        user = User(name=name, email=email, role=role, password=password)
         return user
 
 class UserSchema(Schema):
@@ -36,6 +39,8 @@ class UserSchema(Schema):
     )
 
     email = fields.Email(required=True)
+    role = fields.Int(required=True)
+    password = fields.Str(required=True)
 
     @pre_load()
     def trim_spaces(selfs, data):
