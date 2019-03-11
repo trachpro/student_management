@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from marshmallow import Schema, fields, validate, pre_load
+from app.models.Enroll import Enroll
+from app.models.Class import Class
 
 from database import Base, db_session as session
 
@@ -28,6 +30,10 @@ class User(Base):
         user = User(name=name, email=email, role=role, password=password)
         return user
 
+    @classmethod
+    def get_student_class_tutor(cls, class_id):
+        return session.query(User).join(Enroll).filter_by(class_id=class_id, status=1).join(Class).filter_by(status=1).all()
+
 class UserSchema(Schema):
     id = fields.Int()
     name = fields.Str(
@@ -48,3 +54,4 @@ class UserSchema(Schema):
             data['name'] = data['name'].strip()
 
         return data
+

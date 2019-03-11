@@ -7,7 +7,8 @@ JWT_SECRET = 'YOUR_SECRET_STRING'
 def encode(account):
     iat = datetime.datetime.utcnow()
     return jwt.encode({
-        'sub': account['id'],
+        'id': account['id'],
+        'role': account['role'],
         'iat': iat,
         'exp': iat + datetime.timedelta(days=365)
     }, JWT_SECRET).decode('utf-8')

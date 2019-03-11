@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String
-# from marshmallow import Schema, fields, validate, pre_load
+from marshmallow import Schema, fields, validate, pre_load
+from marshmallow.validate import Range
 
+from app.models.Enroll import Enroll
 from database import Base, db_session as session
 
 class Class(Base):
@@ -20,34 +22,49 @@ class Class(Base):
         self.status = status,
         self.tutor_id = tutor_id
 
-    # @classmethod
-    # def get_class_by_tutor_id(cls, tutor_id):
-    #     return session.query(Class).filter_by(tutor_id=tutor_id)
+    @classmethod
+    def get_class_by_tutor_id(cls, tutor_id):
+        return session.query(Class).filter_by(tutor_id=tutor_id)
 
-    # @classmethod
-    # def get_class_by_id(cls, class_id):
-    #     return session.query(Class).filter_by(id=class_id)
+    @classmethod
+    def get_all_class(cls):
+        return session.query(Class).all()
 
-    # @classmethod
-    # def register_new_class(cls, name, student_limit, tutor_id):
-    #     data = Class(name=name, student_limit=student_limit, tutor_id=tutor_id)
-    #     return data
+    @classmethod
+    def get_class_by_id(cls, class_id):
+        return session.query(Class).filter_by(id=class_id).first()
 
-# class UserSchema(Schema):
-#     id = fields.Int()
-#     name = fields.Str(
-#         required=True,
-#         validate=[
-#             validate.Length(min=1, error="User's name cannot be empty"),
-#             validate.Length(max=100, error="User's name is limited to 100 characters")
-#         ]
-#     )
-#
-#     email = fields.Email(required=True)
-#
-#     @pre_load()
-#     def trim_spaces(selfs, data):
-#         if isinstance(data['name'], str):
-#             data['name'] = data['name'].strip()
-#
-#         return data
+    @classmethod
+    def register_new_class(cls, name, student_limit, tutor_id):
+        data = Class(name=name, student_limit=student_limit, tutor_id=tutor_id, current_student = 0,status = 1)
+        return data
+    
+    @classmethod
+    def get_my_class_student(cls, user_id):
+        return session.query(Class).filter_by(status=1).join(Enroll).filter_by(user_id = user_id, status=1)
+
+    @classmethod
+    def get_my_class_tutor(cls, tutor_id):
+        return session.query(Class).filter_by(tutor_id=tutor_id, status=1).all()
+
+
+class ClassSchema(Schema):
+    id = fields.Int()
+    name = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=3, error="User's name cannot be empty"),
+            validate.Length(max=50, error="User's name is limited to 100 characters")
+        ]
+    )
+
+    student_limit = fields.Int(
+        required=True,
+        validate=[
+            Range(min=1, max=15, error="the number of student must be between 1 and 15")
+        ]
+    )
+
+    tutor_id = fields.Int(required=True)
+    status = fields.Int()
+    current_student = fields.Int()

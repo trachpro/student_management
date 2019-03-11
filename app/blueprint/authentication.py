@@ -27,17 +27,18 @@ def login():
         }), 401
 
     user = User.get_user_by_id(data['email'])
+    print("user role: ", user.role)
 
     if user and sha256_crypt.verify(data['password'], user.password):
         return jsonify({
             "jwt": encode({"id": user.id, 'role': user.role}),
             "status": 1
-        }), 401
+        }), 200
     else:
         return jsonify({
             "status": 0,
             "message": "email or password is incorrect!"
-        }), 40
+        }), 400
 
 
 @authentication.route('/api/admin_login', methods=['POST'])

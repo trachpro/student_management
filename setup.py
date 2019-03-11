@@ -8,7 +8,6 @@ setup(
         'Flask',
         'SQLAlchemy',
         'requests',
-        'oauth2client',
         'PyJWT',
         'marshmallow',
         'PyMySQL',

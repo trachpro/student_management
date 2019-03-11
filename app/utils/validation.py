@@ -1,15 +1,17 @@
 import datetime
 from functools import wraps
+import re
 
 import jwt
 from flask import request, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from marshmallow import ValidationError
+from app.utils.jwt import encode as jwt_encode, decode as jwt_decode
 
 from app.utils.error import Error, StatusCode
 
-SECRET_KEY = "my secret key"
+SECRET_KEY = "YOUR_SECRET_STRING"
 
 def access_token_required(f):
     @wraps(f)
@@ -47,10 +49,36 @@ def access_token_required(f):
             }
             raise Error(StatusCode.UNAUTHORIZED, "Request unauthorized", errors)
 
-        id = payload['id']
-        return f(id=id, *args, **kwargs)
+        print("payload: ", payload)
+        # id = payload['id']
+        # kwargs['user_id']=payload['id']
+        # kwargs['role']=payload['role']
+        return f(user_id = payload['id'],role = payload['role'], *args, **kwargs)
 
     return decorated_func
+
+def get_value_from_access_token():
+    auth_header = request.headers.get("Authorization")
+
+    if auth_header is None:
+        errors = {
+            "token": "Access token was missing"
+        }
+        return None
+
+    token = auth_header.split(" ")[1]
+
+    if not token:
+        return None
+
+    try:
+            # Decode token by app's secret key
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+    except:
+            # Check that token is expired
+        return None
+
+    return payload['role']
 
 
 def validate_schema(schema, data):
@@ -61,20 +89,25 @@ def validate_schema(schema, data):
     """
     try:
         validated_data = schema.load(data)
+        print("rasing1...")
     except ValidationError as e:
         errors = e.messages
+        print("rasing...")
         raise Error(StatusCode.BAD_REQUEST, "Validation failed", errors)
 
     return validated_data
 
+def is_valid_password(password):
 
-def jwt_encode(user):
-    token = jwt.encode({
-        "id": user.id,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3)
-    }, SECRET_KEY)
-    return token
+    return re.match("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{5,10}$", password)
+
+# def jwt_encode(user):
+#     token = jwt.encode({
+#         "sub": user.id,
+#         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=3)
+#     }, SECRET_KEY)
+#     return token
 
 
-def jwt_decode(token):
-    return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+# def jwt_decode(token):
+#     return jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
