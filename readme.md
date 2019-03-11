@@ -8,7 +8,7 @@ source venv/bin/activate
 
 # setup dependences
 
-python3 setup install
+python3 setup.py install
 
 # run project
 
